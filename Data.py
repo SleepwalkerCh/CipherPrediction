@@ -18,7 +18,11 @@ def ReadFileDataWithoutHandle(route):
 			line = line[1:len(line) - 1]
 		line = line.replace("\n", "")
 		line = line.replace("\r", "")
-		result.append(line)
+		for i in range(len(line) - 7):
+			des = line[i:i + 9]
+			if i == len(line) - 8:
+				des = des + 'E'
+			result.append(des)
 	print("OK")
 	return result
 
@@ -31,7 +35,7 @@ def Pwd2Batch(password,max_len): # input: like "01234567",max_len = 8
 		X.append(password[0:i] + space(max_len - i))
 		Y.append(password[1:i + 1] + space(max_len - i))
 	X.append(password[0:max_len])
-	Y.append(password[1:max_len] + "E")
+	Y.append(password[1:max_len+1])
 	return X,Y
 
 def space(num):
