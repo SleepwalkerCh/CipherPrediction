@@ -2,7 +2,6 @@
 import tensorflow as tf
 import numpy as np
 import Data
-import os
 from FindMaxNIndex import FindIndex
 from copy import deepcopy
 import random
@@ -38,7 +37,6 @@ class RNN:
 		# FC layer
 		X_for_fc = tf.reshape(outputs, [-1, hidden_size])
 		outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
-		#outputs = tf.nn.softmax(outputs,axis=1)
 		# reshape out for sequence_loss
 		self.outputs = tf.reshape(outputs, [RNN.batch_size, -1, num_classes])
 
@@ -51,12 +49,10 @@ class RNN:
 	def Train(self,data,times): # data = [X,Y] X = [[10],[10],……,[10]] Y = [[10],[10],……,[10]]
 		idx2char = Data.GetCharsSet()
 		char2idx = {c: i for i, c in enumerate(idx2char)}
-
 		with tf.Session() as self.sess:
 			self.sess.run(tf.global_variables_initializer())
 			for j in range(times):
 				for i in range(len(data)):
-
 					x_data, y_data = Data.Pwd2Batch(data[random.randrange(0,len(data))],RNN.max_sequence_length)
 					x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
 					y_idx = [[char2idx[c] for c in y_data[k]] for k in range(RNN.max_sequence_length)]
@@ -64,7 +60,7 @@ class RNN:
 									feed_dict={self.X: x_idx, self.Y: y_idx})
 
 				if j % 100 == 0:
-					self.TestPwdProb('01234567')
+					self.TestPwdProb('zeithanks')
 					print(j, "loss:", l)
 	def Predict(self,Last,depth=0,OutFile=None):
 		if depth > 12:
@@ -100,24 +96,59 @@ class RNN:
 					OutFile.write(str(result) + '\n')
 	def softmax(self,x):
 		return np.exp(x) / np.sum(np.exp(x), axis=0)
-
-	def TestPwdProb(self, TestString):
-		idx2char = Data.GetCharsSet()
-		char2idx = {c: i for i, c in enumerate(idx2char)}
-		x_data,y_data = Data.Pwd2Batch(TestString,RNN.max_sequence_length)
-		x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
-		result = 1
-
-		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
-		Probability = Probability.tolist()
+	def ProbSoftMax(self,Probability):
 		for i in range(RNN.batch_size):
 			for j in range(RNN.max_sequence_length):
 				Probability[i][j] = self.softmax(Probability[i][j]).tolist()
+		return Probability
+
+	def TestPwdProb(self, TestString): # Calculate the probability of a certain Test String
+		# if its length is equal to RNN.batch_size, calculate directly
+		# if larger, calculate first bach_size and then multiply the other locations
+		if TestString.__contains__('E') == False:
+			TestString = TestString + 'E'
+
+		# preparation
+		idx2char = Data.GetCharsSet()
+		char2idx = {c: i for i, c in enumerate(idx2char)}
+		Overlen = len(TestString) - RNN.batch_size - 1
+		# Initial Calculate
+		x_data,y_data = Data.Pwd2Batch(TestString,RNN.max_sequence_length)
+		x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
+		result = 1
+		# take the first batch_size locaitons into the RNN
+		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
+		Probability = self.ProbSoftMax(Probability.tolist()) # change into a good format
+		# display the predicted characters
 		for i in range(RNN.batch_size):
 			for j in range(RNN.max_sequence_length):
 				print(idx2char[Probability[i][j].index(max(Probability[i][j]))],end='')
 			print("",end=" ")
-		for i in range(RNN.max_sequence_length - 1):
+		# multiply all first locations
+		for i in range(RNN.max_sequence_length):
 			result = result * Probability[i][i][char2idx[TestString[i + 1]]]
-		print(result)
+			print(TestString[i + 1],end=' ')
+		if Overlen == 0: # only has the size of batch_size
+			print('Probability:', result)
+			return result
+		print(' |',end=' ')
+		# over-long part calculation
+		NextString = TestString[Overlen:len(TestString)]
+		x_data, y_data = Data.Pwd2Batch(NextString, RNN.max_sequence_length)
+		x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
 
+		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
+		Probability = Probability.tolist()
+		Probability = self.ProbSoftMax(Probability)
+		# for i in range(RNN.batch_size):
+		# 	for j in range(RNN.max_sequence_length):
+		# 		print(idx2char[Probability[i][j].index(max(Probability[i][j]))], end='')
+		# 	print("", end=" ")
+
+		for i in range(Overlen):
+			result = result * Probability[RNN.max_sequence_length - i - 1]\
+											[RNN.max_sequence_length - i - 1]\
+											[char2idx[NextString[RNN.max_sequence_length- i]]]
+			print(NextString[RNN.max_sequence_length - i],end=' ')
+		print('Probability:', result)
+		return result
