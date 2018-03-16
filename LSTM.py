@@ -1,21 +1,27 @@
 #coding=utf-8
 import tensorflow as tf
 import numpy as np
-import Data
+from Data import Data
 from FindMaxNIndex import FindIndex
 from copy import deepcopy
-import random
+import pickle
+import os
+
+
 class RNN:
 	batch_size = 8  # one sample data, one batch
 	max_sequence_length = 8
+	tensorboard_route = "D:/logs"
+	is_new_train = False
+	total_step = 0
 	def CreateNetwork(self):
 		print("Creating Network.....",end=" ")
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = 10  # RNN output size
+		hidden_size = 30  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
-		learning_rate = 0.01
+		learning_rate = 0.02
 		layer_num = 1
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X data
@@ -44,57 +50,43 @@ class RNN:
 		# http://blog.csdn.net/appleml/article/details/54017873
 		sequence_loss = tf.contrib.seq2seq.sequence_loss(logits=self.outputs, targets=self.Y, weights=weights)
 		self.loss = tf.reduce_mean(sequence_loss)
+		tf.summary.scalar('loss', self.loss)
 		self.train = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
 		print("OK")
-	def Train(self,data,times): # data = [X,Y] X = [[10],[10],……,[10]] Y = [[10],[10],……,[10]]
-		idx2char = Data.GetCharsSet()
-		char2idx = {c: i for i, c in enumerate(idx2char)}
+	def SaveSteps(self):
+		file = open('steps','wb')
+		pickle.dump(RNN.total_step,file)
+		file.close()
+	def RestoreSteps(self):
+		file = open('steps', 'rb')
+		RNN.total_step = pickle.load(file)
+		file.close()
+	def Train(self,times): # data = [X,Y] X = [[10],[10],……,[10]] Y = [[10],[10],……,[10]]
 		with tf.Session() as self.sess:
-			self.sess.run(tf.global_variables_initializer())
-			for j in range(times):
-				for i in range(len(data)):
-					x_data, y_data = Data.Pwd2Batch(data[random.randrange(0,len(data))],RNN.max_sequence_length)
-					x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
-					y_idx = [[char2idx[c] for c in y_data[k]] for k in range(RNN.max_sequence_length)]
-					l, _ = self.sess.run([self.loss, self.train],
-									feed_dict={self.X: x_idx, self.Y: y_idx})
-
-				if j % 100 == 0:
-					self.TestPwdProb('123123123')
-					self.TestPwdProb('11111111')
-					print(j, "loss:", l)
-	def Predict(self,Last,depth=0,OutFile=None):
-		if depth > 12:
-			return
-		else:
-			depth = depth + 1
-		idx2char = Data.GetCharsSet()
-		char2idx = {c: i for i, c in enumerate(idx2char)}
-		x_idx = [char2idx[c] for c in Last]
-		x_idx = np.reshape(x_idx, [-1, 10])
-
-		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
-		Probability = Probability[0][len(Probability[0]) - 1].tolist()
-
-		temp = ['a' for i in range(10)]
-		for i in range(9):
-			temp[i] = Last[i + 1]
-		# 针对最后一个字符进行递归
-		width = 2
-		for i in range(1,width + 1):
-			temp[9] = idx2char[FindIndex(Probability, i)]
-			if temp[9] == ' ':
-				continue
-			if temp[9] != 'E':
-				self.Predict(deepcopy(temp),depth,OutFile)
+			saver = tf.train.Saver(max_to_keep=1)
+			merged_summary_op = tf.summary.merge_all()
+			writer = tf.summary.FileWriter(RNN.tensorboard_route, self.sess.graph)
+			if RNN.is_new_train == True:
+				self.sess.run(tf.global_variables_initializer())
 			else:
-				result = ''.join(temp)
-				result = result.replace(" ", "")
-				result = result[:result.index('E')]
-				if OutFile is None:
-					print(result)
-				else:
-					OutFile.write(str(result) + '\n')
+				saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
+				self.RestoreSteps()
+			# Start
+			for j in range(times):
+				x_idx,y_idx = Data.GetBatch()
+				self.sess.run(self.train,feed_dict={self.X: x_idx, self.Y: y_idx})
+				if j % 300 == 0:
+					summary_str,loss = self.sess.run([merged_summary_op,self.loss]
+										,feed_dict={self.X: x_idx, self.Y: y_idx})
+					# save into tensorboard
+					writer.add_summary(summary_str, RNN.total_step)
+					RNN.total_step = RNN.total_step + 1
+					self.SaveSteps()
+					# save model
+					print(j, "loss:", loss)
+					saver.save(sess=self.sess, save_path="./Model/model.ckpt")
+
+
 	def softmax(self,x):
 		return np.exp(x) / np.sum(np.exp(x), axis=0)
 	def ProbSoftMax(self,Probability):
@@ -147,3 +139,36 @@ class RNN:
 											[char2idx[NextString[RNN.max_sequence_length- i]]]
 		print(result)
 		return result
+
+	def Predict(self,Last,depth=0,OutFile=None):
+		if depth > 12:
+			return
+		else:
+			depth = depth + 1
+		idx2char = Data.GetCharsSet()
+		char2idx = {c: i for i, c in enumerate(idx2char)}
+		x_idx = [char2idx[c] for c in Last]
+		x_idx = np.reshape(x_idx, [-1, 10])
+
+		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
+		Probability = Probability[0][len(Probability[0]) - 1].tolist()
+
+		temp = ['a' for i in range(10)]
+		for i in range(9):
+			temp[i] = Last[i + 1]
+		# 针对最后一个字符进行递归
+		width = 2
+		for i in range(1,width + 1):
+			temp[9] = idx2char[FindIndex(Probability, i)]
+			if temp[9] == ' ':
+				continue
+			if temp[9] != 'E':
+				self.Predict(deepcopy(temp),depth,OutFile)
+			else:
+				result = ''.join(temp)
+				result = result.replace(" ", "")
+				result = result[:result.index('E')]
+				if OutFile is None:
+					print(result)
+				else:
+					OutFile.write(str(result) + '\n')
