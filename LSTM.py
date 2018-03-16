@@ -60,21 +60,12 @@ class RNN:
 					x_data, y_data = Data.Pwd2Batch(data[random.randrange(0,len(data))],RNN.max_sequence_length)
 					x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
 					y_idx = [[char2idx[c] for c in y_data[k]] for k in range(RNN.max_sequence_length)]
-					#x_idx = np.reshape(x_idx, [-1, RNN.max_sequence_length])
-					#y_idx = np.reshape(y_idx, [-1, RNN.max_sequence_length])
 					l, _ = self.sess.run([self.loss, self.train],
 									feed_dict={self.X: x_idx, self.Y: y_idx})
 
 				if j % 100 == 0:
-					self.TestPwdProb('zaishuan')
-					self.TestPwdProb('zaishuam')
-					self.TestPwdProb('zaishuap')
+					self.TestPwdProb('01234567')
 					print(j, "loss:", l)
-
-			# self.TestPwdProb('0123456')
-			# OutFile = open("Prediction.txt", 'w')
-			# self.Predict(list("          "),OutFile=OutFile)
-			# OutFile.close()
 	def Predict(self,Last,depth=0,OutFile=None):
 		if depth > 12:
 			return
