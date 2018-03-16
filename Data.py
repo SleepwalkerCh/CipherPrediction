@@ -23,6 +23,7 @@ def ReadFileDataWithoutHandle(route):
 			if i == len(line) - 8:
 				des = des + 'E'
 			result.append(des)
+	print('OK')
 	return result
 
 def Pwd2Batch(password,max_len): # input: like "01234567",max_len = 8
