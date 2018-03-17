@@ -1,3 +1,4 @@
+import os
 class Data:
 	BatchLocation = 0
 	DataLines = []
@@ -67,7 +68,7 @@ class Data:
 	def GetCharsSet():
 		letters = list(" abcdefghijklmnopqrstuvwxyz")
 		numbers = list("0123456789")
-		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./")
+		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./=-`")
 		special = list("E")
 		result = letters + numbers + symbols + special
 		return result
@@ -101,15 +102,114 @@ class Data:
 		OutFile.close()
 
 	@staticmethod
+	def GetLinesNum(Route):
+		file = open(Route,'r')
+		num = 0
+		while 1:
+			line = file.readline()
+			if len(line) <= 0:
+				break
+			num = num + 1
+		file.close()
+		return num
+	@staticmethod
 	def DivideTrainAndTestFile(SrcRoute,DivideRate):
+		# DivideRate refers to how much the train file takes up the whole data file
+		# e.g ('data.txt',0.2) means 20% train file and 80% test file
 		step = 1 / (float)(DivideRate)
-		AllData = Data.ReadFileDataWithoutHandle(SrcRoute)
-		TrainFile = open(SrcRoute + '_train.txt', 'w')
-		TestFile = open(SrcRoute + '_test.txt', 'w')
+		AllData = []
+		file = open(SrcRoute,'r')
+		while 1:
+			line = file.readline()
+			if len(line) <= 0:
+				break
+			while line[0] == " ":
+				line = line[1:len(line) - 1]
+			line = line.replace("\n", "")
+			line = line.replace("\r", "")
+			AllData.append(line)
+		TrainFile = open(SrcRoute.replace('.txt','') + '_train.txt', 'w')
+		TestFile = open(SrcRoute.replace('.txt','') + '_test.txt', 'w')
 		for i in range(len(AllData)):
 			if i % step == 0:
 				TrainFile.write(AllData[i] + '\n')
 			else:
 				TestFile.write(AllData[i] + '\n')
+		file.close()
 		TrainFile.close()
 		TestFile.close()
+	@staticmethod
+	def PartOfDataFileByLength(SrcRoute,MinLen=8,MaxLen=16):
+		# Take some of data items whose length is between MinLen and MaxLen
+		AllData = []
+		file = open(SrcRoute, 'r')
+		while 1:
+			line = file.readline()
+			if len(line) <= 0:
+				break
+			while line[0] == " ":
+				line = line[1:len(line) - 1]
+			line = line.replace("\n", "")
+			line = line.replace("\r", "")
+			if len(line) < MinLen or len(line) > MaxLen:
+				continue
+			AllData.append(line)
+		file.close()
+		ResultFile = open(SrcRoute.replace('.txt', '') + '(' + str(MinLen) + '-' + str(MaxLen) + ')' + '.txt', 'w')
+		for i in range(len(AllData)):
+			ResultFile.write(AllData[i] + '\n')
+		ResultFile.close()
+
+	@staticmethod
+	def PartOfDataFileByRate(SrcRoute,StartRate,EndRate):# Take part of the SrcRoute file
+		# from StartRate to EndRate e.g. ('data.txt',0.6,0.7)
+		AllData = []
+		file = open(SrcRoute, 'r')
+		while 1:
+			line = file.readline()
+			if len(line) <= 0:
+				break
+			while line[0] == " ":
+				line = line[1:len(line) - 1]
+			line = line.replace("\n", "")
+			line = line.replace("\r", "")
+			AllData.append(line)
+		file.close()
+		ResultFile = open(SrcRoute.replace('.txt','')+ '(' + str(StartRate) + '-'+ str(EndRate) + ')'+ '.txt','w')
+		for i in range(int(StartRate * len(AllData)),int(EndRate * len(AllData))):
+			ResultFile.write(AllData[i] + '\n')
+		ResultFile.close()
+
+	@staticmethod
+	def Upper2Lower(SrcRoute): # Change every char in SrcRoute into lower char in the same file
+		AllData = []
+		CharsSet = Data.GetCharsSet()
+		file = open(SrcRoute, 'r')
+		while 1:
+			line = file.readline()
+			IsContinue = False
+
+			if len(line) <= 0:
+				break
+			while line[0] == " ":
+				line = line[1:len(line) - 1]
+			line = line.replace("\n", "")
+			line = line.replace("\r", "")
+			line = line.lower()
+			for i in range(len(line)):
+				if line[i] not in CharsSet:
+					IsContinue = True
+			if IsContinue == True:
+				continue
+			AllData.append(line)
+		file.close()
+		os.remove(SrcRoute)
+		file = open(SrcRoute,'w')
+		for i in range(len(AllData)):
+			file.write(AllData[i] + '\n')
+		file.close()
+
+#Data.DivideTrainAndTestFile('密码弱口令字典(0.4-0.5).txt',0.2)
+#Data.PartOfDataFileByRate('密码弱口令字典.txt',0.4,0.5)
+# Data.PartOfDataFileByLength('密码弱口令字典.txt')
+#Data.Upper2Lower('密码弱口令字典(0.4-0.5).txt')

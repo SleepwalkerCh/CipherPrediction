@@ -13,7 +13,7 @@ class RNN:
 	batch_size = 8  # one sample data, one batch
 	max_sequence_length = 8
 	tensorboard_route = "D:/logs"
-	is_new_train = False
+	is_new_train = True
 	total_step = 0
 	def CreateNetwork(self):
 		print("Creating Network.....",end=" ")
@@ -62,7 +62,7 @@ class RNN:
 		file = open('steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
-	def Train(self,times): # data = [X,Y] X = [[10],[10],……,[10]] Y = [[10],[10],……,[10]]
+	def Train(self,times):
 		with tf.Session() as self.sess:
 			saver = tf.train.Saver(max_to_keep=1)
 			merged_summary_op = tf.summary.merge_all()
@@ -86,11 +86,14 @@ class RNN:
 					# save model
 					print(j, "loss:", loss)
 					saver.save(sess=self.sess, save_path="./Model/model.ckpt")
-			self.Test("test_data.txt")
+			print('Testing...')
+			self.Test("密码弱口令字典(0.4-0.5)_test.txt")
 
 	def Test(self,route):
 		data_file = open(route, 'r')
 		resultlist=[]
+		TotalLines = Data.GetLinesNum(route)
+		FinishedLines = 0
 		while 1:
 			line = data_file.readline()
 			if len(line) <= 0:
@@ -101,20 +104,23 @@ class RNN:
 			line = line.replace("\r", "")
 			line=line+'E'
 			result=self.TestPwdProb(line)
-
 			resultlist.append(result)
-		#print(resultlist);
+			FinishedLines = FinishedLines + 1
+			if FinishedLines % 1000 == 0:
+				print(str(100 * FinishedLines / float(TotalLines)) + str("%"))
 
-		x=np.arange(0, 6, 0.1)
+		x=np.arange(0, 25, 0.1)
 		y=[]
+
 		for i in x:
-			sum=0
+			sum = 0
 			for j in resultlist:
 				if j <pow(10,i):
 					sum+=1
 			y.append(sum/len(resultlist))
 
 		plt.plot(x, y)
+		plt.title('Guess Result')
 		plt.xlabel('Guesses 10^x')
 		plt.ylabel('percent guessed')
 		plt.show()
@@ -128,7 +134,7 @@ class RNN:
 		return Probability
 
 	def TestPwdProb(self, TestString): # Calculate the probability of a certain Test String
-		print(' ' + TestString,end=' : ')
+		#print(' ' + TestString,end=' : ')
 		# if its length is equal to RNN.batch_size, calculate directly
 		# if larger, calculate first bach_size and then multiply the other locations
 		if TestString.__contains__('E') == False:
