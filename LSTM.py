@@ -6,6 +6,7 @@ from FindMaxNIndex import FindIndex
 from copy import deepcopy
 import pickle
 import os
+import matplotlib.pyplot as plt
 
 
 class RNN:
@@ -85,7 +86,38 @@ class RNN:
 					# save model
 					print(j, "loss:", loss)
 					saver.save(sess=self.sess, save_path="./Model/model.ckpt")
+			self.Test("test_data.txt")
 
+	def Test(self,route):
+		data_file = open(route, 'r')
+		resultlist=[]
+		while 1:
+			line = data_file.readline()
+			if len(line) <= 0:
+				break
+			while line[0] == " ":
+				line = line[1:len(line) - 1]
+			line = line.replace("\n", "")
+			line = line.replace("\r", "")
+			line=line+'E'
+			result=self.TestPwdProb(line)
+
+			resultlist.append(result)
+		#print(resultlist);
+
+		x=np.arange(0, 6, 0.1)
+		y=[]
+		for i in x:
+			sum=0
+			for j in resultlist:
+				if j <pow(10,i):
+					sum+=1
+			y.append(sum/len(resultlist))
+
+		plt.plot(x, y)
+		plt.xlabel('Guesses 10^x')
+		plt.ylabel('percent guessed')
+		plt.show()
 
 	def softmax(self,x):
 		return np.exp(x) / np.sum(np.exp(x), axis=0)
@@ -96,7 +128,7 @@ class RNN:
 		return Probability
 
 	def TestPwdProb(self, TestString): # Calculate the probability of a certain Test String
-		print('        ' + TestString,end=' : ')
+		print(' ' + TestString,end=' : ')
 		# if its length is equal to RNN.batch_size, calculate directly
 		# if larger, calculate first bach_size and then multiply the other locations
 		if TestString.__contains__('E') == False:
@@ -122,8 +154,8 @@ class RNN:
 		for i in range(RNN.max_sequence_length):
 			result = result * Probability[i][i][char2idx[TestString[i + 1]]]
 		if Overlen == 0: # only has the size of batch_size
-			print(result)
-			return result
+			#print(result)
+			return 1/result
 		# over-long part calculation
 		NextString = TestString[Overlen:len(TestString)]
 		x_data, y_data = Data.Pwd2Batch(NextString, RNN.max_sequence_length)
@@ -137,8 +169,8 @@ class RNN:
 			result = result * Probability[RNN.max_sequence_length - i - 1]\
 											[RNN.max_sequence_length - i - 1]\
 											[char2idx[NextString[RNN.max_sequence_length- i]]]
-		print(result)
-		return result
+		#print(result)
+		return 1/result
 
 	def Predict(self,Last,depth=0,OutFile=None):
 		if depth > 12:
