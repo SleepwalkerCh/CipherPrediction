@@ -209,7 +209,7 @@ class Data:
 			file.write(AllData[i] + '\n')
 		file.close()
 
-#Data.DivideTrainAndTestFile('密码弱口令字典(0.4-0.5).txt',0.2)
+#Data.DivideTrainAndTestFile('密码弱口令字典.txt',0.2)
 #Data.PartOfDataFileByRate('密码弱口令字典.txt',0.4,0.5)
 # Data.PartOfDataFileByLength('密码弱口令字典.txt')
-#Data.Upper2Lower('密码弱口令字典(0.4-0.5).txt')
+#Data.Upper2Lower('密码弱口令字典.txt')

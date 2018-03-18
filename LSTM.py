@@ -5,7 +5,7 @@ from Data import Data
 from FindMaxNIndex import FindIndex
 from copy import deepcopy
 import pickle
-import os
+from FirstCharProb import FirstCharProb
 import matplotlib.pyplot as plt
 
 
@@ -22,7 +22,7 @@ class RNN:
 		# hyper parameters
 		hidden_size = 30  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
-		learning_rate = 0.02
+		learning_rate = 0.01
 		layer_num = 1
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X data
@@ -53,6 +53,7 @@ class RNN:
 		self.loss = tf.reduce_mean(sequence_loss)
 		tf.summary.scalar('loss', self.loss)
 		self.train = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
+		self.sess = tf.Session()
 		print("OK")
 	def SaveSteps(self):
 		file = open('steps','wb')
@@ -62,34 +63,32 @@ class RNN:
 		file = open('steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
-	def Train(self,times):
-		with tf.Session() as self.sess:
-			saver = tf.train.Saver(max_to_keep=1)
-			merged_summary_op = tf.summary.merge_all()
-			writer = tf.summary.FileWriter(RNN.tensorboard_route, self.sess.graph)
-			if RNN.is_new_train == True:
-				self.sess.run(tf.global_variables_initializer())
-			else:
-				saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
-				self.RestoreSteps()
-			# Start
-			for j in range(times):
-				x_idx,y_idx = Data.GetBatch()
-				self.sess.run(self.train,feed_dict={self.X: x_idx, self.Y: y_idx})
-				if j % 300 == 0:
-					summary_str,loss = self.sess.run([merged_summary_op,self.loss]
-										,feed_dict={self.X: x_idx, self.Y: y_idx})
-					# save into tensorboard
-					writer.add_summary(summary_str, RNN.total_step)
-					RNN.total_step = RNN.total_step + 1
-					self.SaveSteps()
-					# save model
-					print(j, "loss:", loss)
-					saver.save(sess=self.sess, save_path="./Model/model.ckpt")
-			print('Testing...')
-			self.Test("密码弱口令字典(0.4-0.5)_test.txt")
+	def Train(self,MaxTimes):
+		saver = tf.train.Saver(max_to_keep=1)
+		merged_summary_op = tf.summary.merge_all()
+		writer = tf.summary.FileWriter(RNN.tensorboard_route, self.sess.graph)
+		if RNN.is_new_train == True:
+			self.sess.run(tf.global_variables_initializer())
+		else:
+			saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
+			self.RestoreSteps()
+		# Start
+		for j in range(max(len(Data.batches),MaxTimes)):
+			x_idx,y_idx = Data.GetBatch()
+			self.sess.run(self.train,feed_dict={self.X: x_idx, self.Y: y_idx})
+			if j % 300 == 0:
+				summary_str,loss = self.sess.run([merged_summary_op,self.loss]
+									,feed_dict={self.X: x_idx, self.Y: y_idx})
+				# save into tensorboard
+				writer.add_summary(summary_str, RNN.total_step)
+				RNN.total_step = RNN.total_step + 1
+				self.SaveSteps()
+				# save model
+				print(j, "loss:", loss)
+				saver.save(sess=self.sess, save_path="./Model/model.ckpt")
 
 	def Test(self,route):
+		print('Testing...')
 		data_file = open(route, 'r')
 		resultlist=[]
 		TotalLines = Data.GetLinesNum(route)
@@ -134,7 +133,6 @@ class RNN:
 		return Probability
 
 	def TestPwdProb(self, TestString): # Calculate the probability of a certain Test String
-		#print(' ' + TestString,end=' : ')
 		# if its length is equal to RNN.batch_size, calculate directly
 		# if larger, calculate first bach_size and then multiply the other locations
 		if TestString.__contains__('E') == False:
@@ -144,10 +142,11 @@ class RNN:
 		idx2char = Data.GetCharsSet()
 		char2idx = {c: i for i, c in enumerate(idx2char)}
 		Overlen = len(TestString) - RNN.batch_size - 1
+		MaxTimes = 10 ** 50
 		# Initial Calculate
 		x_data,y_data = Data.Pwd2Batch(TestString,RNN.max_sequence_length)
 		x_idx = [[char2idx[c] for c in x_data[k]] for k in range(RNN.max_sequence_length)]
-		result = 1
+		result = FirstCharProb.GetProb(TestString[0])
 		# take the first batch_size locaitons into the RNN
 		Probability = self.sess.run(self.outputs, feed_dict={self.X: x_idx})
 		Probability = self.ProbSoftMax(Probability.tolist()) # change into a good format
@@ -160,7 +159,8 @@ class RNN:
 		for i in range(RNN.max_sequence_length):
 			result = result * Probability[i][i][char2idx[TestString[i + 1]]]
 		if Overlen == 0: # only has the size of batch_size
-			#print(result)
+			if result == 0:
+				return MaxTimes
 			return 1/result
 		# over-long part calculation
 		NextString = TestString[Overlen:len(TestString)]
@@ -175,7 +175,8 @@ class RNN:
 			result = result * Probability[RNN.max_sequence_length - i - 1]\
 											[RNN.max_sequence_length - i - 1]\
 											[char2idx[NextString[RNN.max_sequence_length- i]]]
-		#print(result)
+		if result == 0:
+			return MaxTimes
 		return 1/result
 
 	def Predict(self,Last,depth=0,OutFile=None):
