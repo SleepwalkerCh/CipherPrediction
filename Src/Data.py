@@ -1,4 +1,6 @@
 import os
+import re
+
 class Data:
 	BatchLocation = 0
 	DataLines = []
@@ -208,6 +210,42 @@ class Data:
 		for i in range(len(AllData)):
 			file.write(AllData[i] + '\n')
 		file.close()
+
+	@staticmethod
+	def CleanData():
+		#src dir
+		dic_path = "C:/Users/amazing/Desktop/163demo/"
+		#destination dir
+		store_path = "C:/Users/amazing/Desktop/163demo_result/"
+		# get all file name
+		files = os.listdir(dic_path)
+		# print(files)
+		for file in files:
+			if not os.path.isdir(file):
+				if "clean" not in file:
+					file_name = dic_path + file
+					data_file = open(file_name)
+					# create result file
+					new_name = store_path + str(file_name.split("/")[-1].split(".")[0]) + "_clean.txt"
+					print(new_name)
+					result_file = open(new_name, 'w')
+
+					content = data_file.read()
+					pattern = re.compile(r'----(.*)')
+					passwords = pattern.findall(content)
+
+					s = []
+					char_set = Data.GetCharsSet()
+					for password in passwords:
+						password = password.lower()
+						if set(password).issubset(set(char_set)):
+							# clean data
+							s.append(password.lower() + '\n')
+						# print(s)
+
+					data_file.close()
+					result_file.writelines(s)
+					result_file.close()
 
 #Data.DivideTrainAndTestFile('密码弱口令字典.txt',0.2)
 #Data.PartOfDataFileByRate('密码弱口令字典.txt',0.4,0.5)
