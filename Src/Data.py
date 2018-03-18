@@ -79,7 +79,7 @@ class Data:
 		Data.Lines2Batches()
 
 	@staticmethod
-	# calculate the rate that how much the predicted data in the test data
+	# calculate the rate that how much the predicted Data in the test Data
 	def TestCorrectRate(PredictedRoute,TestRoute):
 		TestData = Data.ReadFileDataWithoutHandle(TestRoute)
 		print('The length of Testdata is ',len(TestData))
@@ -114,8 +114,8 @@ class Data:
 		return num
 	@staticmethod
 	def DivideTrainAndTestFile(SrcRoute,DivideRate):
-		# DivideRate refers to how much the train file takes up the whole data file
-		# e.g ('data.txt',0.2) means 20% train file and 80% test file
+		# DivideRate refers to how much the train file takes up the whole Data file
+		# e.g ('Data.txt',0.2) means 20% train file and 80% test file
 		step = 1 / (float)(DivideRate)
 		AllData = []
 		file = open(SrcRoute,'r')
@@ -140,7 +140,7 @@ class Data:
 		TestFile.close()
 	@staticmethod
 	def PartOfDataFileByLength(SrcRoute,MinLen=8,MaxLen=16):
-		# Take some of data items whose length is between MinLen and MaxLen
+		# Take some of Data items whose length is between MinLen and MaxLen
 		AllData = []
 		file = open(SrcRoute, 'r')
 		while 1:
@@ -162,7 +162,7 @@ class Data:
 
 	@staticmethod
 	def PartOfDataFileByRate(SrcRoute,StartRate,EndRate):# Take part of the SrcRoute file
-		# from StartRate to EndRate e.g. ('data.txt',0.6,0.7)
+		# from StartRate to EndRate e.g. ('Data.txt',0.6,0.7)
 		AllData = []
 		file = open(SrcRoute, 'r')
 		while 1:

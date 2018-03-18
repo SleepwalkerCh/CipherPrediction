@@ -1,16 +1,18 @@
 #coding=utf-8
-import tensorflow as tf
-import numpy as np
-from Data import Data
-from FindMaxNIndex import FindIndex
-from copy import deepcopy
 import pickle
-from FirstCharProb import FirstCharProb
+from copy import deepcopy
+
 import matplotlib.pyplot as plt
+import numpy as np
+import tensorflow as tf
+from Src.FindMaxNIndex import FindIndex
+from Src.FirstCharProb import FirstCharProb
+
+from Src.Data import Data
 
 
 class RNN:
-	batch_size = 8  # one sample data, one batch
+	batch_size = 8  # one sample Data, one batch
 	max_sequence_length = 8
 	tensorboard_route = "D:/logs"
 	is_new_train = True
@@ -25,7 +27,7 @@ class RNN:
 		learning_rate = 0.01
 		layer_num = 1
 
-		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X data
+		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
 		self.Y = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # Y label
 
 		x_one_hot = tf.one_hot(self.X, num_classes)  # one hot: 1 -> 0 1 0 0 0 0 0 0 0 0
@@ -56,11 +58,11 @@ class RNN:
 		self.sess = tf.Session()
 		print("OK")
 	def SaveSteps(self):
-		file = open('steps','wb')
+		file = open('./Model/steps','wb')
 		pickle.dump(RNN.total_step,file)
 		file.close()
 	def RestoreSteps(self):
-		file = open('steps', 'rb')
+		file = open('./Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
 	def Train(self,MaxTimes):
@@ -86,6 +88,10 @@ class RNN:
 				# save model
 				print(j, "loss:", loss)
 				saver.save(sess=self.sess, save_path="./Model/model.ckpt")
+
+	def LoadModel(self):
+		saver = tf.train.Saver(max_to_keep=1)
+		saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
 
 	def Test(self,route):
 		print('Testing...')

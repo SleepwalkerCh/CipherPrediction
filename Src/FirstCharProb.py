@@ -1,7 +1,10 @@
-from Data import Data
 import pickle
-from matplotlib import pyplot as plt
+
 import numpy as np
+from matplotlib import pyplot as plt
+
+from Src.Data import Data
+
 
 class FirstCharProb:
 	FirstCharDic = {}
