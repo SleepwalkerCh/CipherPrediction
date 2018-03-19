@@ -17,15 +17,21 @@ class RNN:
 	tensorboard_route = "D:/logs"
 	is_new_train = True
 	total_step = 0
+	def LstmCell(self,hidden_size):
+		# LSTM cell
+		lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
+		# Dropout Layer
+		lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
+		return lstm_cell
 	def CreateNetwork(self):
 		print("Creating Network.....",end=" ")
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = len(idx2char)  # RNN output size
+		hidden_size = 100  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
 		learning_rate = 0.01
-		layer_num = 4
+		layer_num = 3
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
 		self.Y = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # Y label
@@ -36,13 +42,12 @@ class RNN:
 		# Dropout Layer
 		lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
 		# multi-LSTM cell
-		mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * layer_num, state_is_tuple=True)
+		mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([self.LstmCell(hidden_size) for _ in range(layer_num)], state_is_tuple=True)
 
 		init_state = mlstm_cell.zero_state(batch_size=RNN.batch_size, dtype=tf.float32)
 		x_length = [1,2,3,4,5,6,7,8]
-		outputs, _states = tf.nn.dynamic_rnn(mlstm_cell, inputs=x_one_hot,sequence_length=x_length,
-											 initial_state=init_state, dtype=tf.float32, time_major=False)
-
+		outputs,_state = tf.nn.dynamic_rnn(mlstm_cell, inputs=x_one_hot,sequence_length=x_length,initial_state=init_state, dtype=tf.float32, time_major=False)
+		print()
 		# FC layer
 		X_for_fc = tf.reshape(outputs, [-1, hidden_size])
 		outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
@@ -58,11 +63,11 @@ class RNN:
 		self.sess = tf.Session()
 		print("OK")
 	def SaveSteps(self):
-		file = open('../Model/steps','wb')
+		file = open('./Model/steps','wb')
 		pickle.dump(RNN.total_step,file)
 		file.close()
 	def RestoreSteps(self):
-		file = open('../Model/steps', 'rb')
+		file = open('./Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
 	def Train(self,MaxTimes):
@@ -72,7 +77,7 @@ class RNN:
 		if RNN.is_new_train == True:
 			self.sess.run(tf.global_variables_initializer())
 		else:
-			saver.restore(sess=self.sess, save_path="../Model/model.ckpt")
+			saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
 			self.RestoreSteps()
 		# Start
 		for j in range(max(len(Data.batches),MaxTimes)):
@@ -223,12 +228,8 @@ class RNN:
 		for variable in tf.trainable_variables():
 			# shape is an array of tf.Dimension
 			shape = variable.get_shape()
-			# print(shape)
-			# print(len(shape))
 			variable_parameters = 1
 			for dim in shape:
-				# print(dim)
 				variable_parameters *= dim.value
-			# print(variable_parameters)
 			total_parameters += variable_parameters
-		print(total_parameters)
+		print('Parament Number : ',total_parameters)
