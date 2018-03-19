@@ -28,7 +28,7 @@ class Data:
 			for i in range(len(line) - 7):
 				des = line[i:i + 9]
 				if i == len(line) - 8:
-					des = des + 'E'
+					des = des + '«'
 				result.append(des)
 		print('OK')
 		Data.DataLines = result
@@ -71,7 +71,7 @@ class Data:
 		letters = list(" abcdefghijklmnopqrstuvwxyz")
 		numbers = list("0123456789")
 		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./=-`")
-		special = list("E")
+		special = list("睝")
 		result = letters + numbers + symbols + special
 		return result
 

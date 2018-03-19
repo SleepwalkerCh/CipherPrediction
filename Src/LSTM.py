@@ -107,7 +107,7 @@ class RNN:
 				line = line[1:len(line) - 1]
 			line = line.replace("\n", "")
 			line = line.replace("\r", "")
-			line=line+'E'
+			line=line+'«'
 			result=self.TestPwdProb(line)
 			resultlist.append(result)
 			FinishedLines = FinishedLines + 1
@@ -141,8 +141,8 @@ class RNN:
 	def TestPwdProb(self, TestString): # Calculate the probability of a certain Test String
 		# if its length is equal to RNN.batch_size, calculate directly
 		# if larger, calculate first bach_size and then multiply the other locations
-		if TestString.__contains__('E') == False:
-			TestString = TestString + 'E'
+		if TestString.__contains__('«') == False:
+			TestString = TestString + '«'
 
 		# preparation
 		idx2char = Data.GetCharsSet()
@@ -207,12 +207,12 @@ class RNN:
 			temp[9] = idx2char[FindIndex(Probability, i)]
 			if temp[9] == ' ':
 				continue
-			if temp[9] != 'E':
+			if temp[9] != '«':
 				self.Predict(deepcopy(temp),depth,OutFile)
 			else:
 				result = ''.join(temp)
 				result = result.replace(" ", "")
-				result = result[:result.index('E')]
+				result = result[:result.index('«')]
 				if OutFile is None:
 					print(result)
 				else:
