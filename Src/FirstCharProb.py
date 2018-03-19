@@ -7,13 +7,13 @@ from Src.Data import Data
 
 
 class FirstCharProb:
-	FirstCharDic = {}
-
+	FirstCharDicNum = {}
+	FirstCharDicProb = {}
 	@staticmethod
 	def init():
 		CharSet = Data.GetCharsSet()
 		for char in CharSet:
-			FirstCharProb.FirstCharDic[char] = 0
+			FirstCharProb.FirstCharDicNum[char] = 0
 	@staticmethod
 	def LearnFormFile(Route):
 		file = open(Route,'r')
@@ -28,27 +28,31 @@ class FirstCharProb:
 				break
 			if line[0] not in CharSet:
 				continue
-			FirstCharProb.FirstCharDic[line[0]] += 1
+			FirstCharProb.FirstCharDicNum[line[0]] += 1
 			FinishedLines += 1
 			if FinishedLines % step == 0:
 				print(100 * FinishedLines / float(TotalLines),"%")
-		# change number into probability
-		TotalNum = 0
-		for char in CharSet:
-			TotalNum += FirstCharProb.FirstCharDic[char]
-		for char in CharSet:
-			FirstCharProb.FirstCharDic[char] /= TotalNum
 
 	@staticmethod
-	def SaveProb(Route):
+	def TransNum2Prob(): # change number into probability
+		CharSet = Data.GetCharsSet()
+		TotalNum = 0
+		for char in CharSet:
+			TotalNum += FirstCharProb.FirstCharDicNum[char]
+		for char in CharSet:
+			FirstCharProb.FirstCharDicProb[char] = FirstCharProb.FirstCharDicNum[char] \
+												   / TotalNum
+
+	@staticmethod
+	def SaveNum(Route):
 		file = open(Route, 'wb')
-		pickle.dump(FirstCharProb.FirstCharDic, file)
+		pickle.dump(FirstCharProb.FirstCharDicNum, file)
 		file.close()
 
 	@staticmethod
-	def RestoreProb(Route):
+	def RestoreNum(Route):
 		file = open(Route, 'rb')
-		FirstCharProb.FirstCharDic = pickle.load(file)
+		FirstCharProb.FirstCharDicNum = pickle.load(file)
 		file.close()
 	@staticmethod
 	def PaintProb():
@@ -57,10 +61,10 @@ class FirstCharProb:
 		data = []
 		CharSet = Data.GetCharsSet()
 		for char in CharSet:
-			data.append(FirstCharProb.FirstCharDic[char])
+			data.append(FirstCharProb.FirstCharDicProb[char])
 		data = np.array(data)
 		width = 1
-		x_bar = np.arange(len(FirstCharProb.FirstCharDic))
+		x_bar = np.arange(len(FirstCharProb.FirstCharDicProb))
 		ax1.bar(left=x_bar, height=data,align="center",alpha=0.5, width=width, color="green")
 
 		ax1.set_xticks(x_bar)
@@ -68,9 +72,9 @@ class FirstCharProb:
 		ax1.set_ylabel("Probability")
 		ax1.set_title("First Char Probability")
 		ax1.grid(True)
-		ax1.set_ylim(0, FirstCharProb.FirstCharDic[max(FirstCharProb.FirstCharDic, key=FirstCharProb.FirstCharDic.get)])
+		ax1.set_ylim(0, FirstCharProb.FirstCharDicProb[max(FirstCharProb.FirstCharDicProb, key=FirstCharProb.FirstCharDicProb.get)])
 		plt.show()
 
 	@staticmethod
 	def GetProb(char):
-		return FirstCharProb.FirstCharDic[char]
+		return FirstCharProb.FirstCharDicProb[char]

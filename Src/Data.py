@@ -1,5 +1,6 @@
 import os
 import re
+import gc
 
 class Data:
 	BatchLocation = 0
@@ -17,10 +18,14 @@ class Data:
 		print("Reading File and Get Lines.....", end=" ")
 		result = []
 		data_file = open(route, 'r')
+		finished = 0
 		while 1:
 			line = data_file.readline()
+
 			if len(line) <= 0:
 				break
+			if len(line) < 8 or len(line) > 16:
+				continue
 			while line[0] == " ":
 				line = line[1:len(line) - 1]
 			line = line.replace("\n", "")
@@ -30,6 +35,9 @@ class Data:
 				if i == len(line) - 8:
 					des = des + '«'
 				result.append(des)
+			finished += 1
+			if finished % 10000 == 0:
+				print(finished,  "lines finished" )
 		print('OK')
 		Data.DataLines = result
 
@@ -57,6 +65,9 @@ class Data:
 			x_idx = [[char2idx[c] for c in x_data[k]] for k in range(Data.batch_size)]
 			y_idx = [[char2idx[c] for c in y_data[k]] for k in range(Data.batch_size)]
 			Data.batches.append([x_idx,y_idx])
+			if i % 10000 == 0:
+				print(i,"lines to batches")
+				gc.collect()
 		print('Ok')
 
 	@staticmethod
@@ -70,7 +81,7 @@ class Data:
 	def GetCharsSet():
 		letters = list(" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		numbers = list("0123456789")
-		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./=-`")
+		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./=-`\"")
 		special = list("«")
 		result = letters + numbers + symbols + special
 		return result
@@ -118,6 +129,7 @@ class Data:
 	def DivideTrainAndTestFile(SrcRoute,DivideRate):
 		# DivideRate refers to how much the train file takes up the whole Data file
 		# e.g ('Data.txt',0.2) means 20% train file and 80% test file
+		CharsSet = Data.GetCharsSet()
 		step = 1 / (float)(DivideRate)
 		AllData = []
 		file = open(SrcRoute,'r')
@@ -129,6 +141,12 @@ class Data:
 				line = line[1:len(line) - 1]
 			line = line.replace("\n", "")
 			line = line.replace("\r", "")
+			IsContinue = False
+			for i in range(len(line)):
+				if line[i] not in CharsSet:
+					IsContinue = True
+			if IsContinue == True:
+				continue
 			AllData.append(line)
 		TrainFile = open(SrcRoute.replace('.txt','') + '_train.txt', 'w')
 		TestFile = open(SrcRoute.replace('.txt','') + '_test.txt', 'w')
@@ -247,7 +265,7 @@ class Data:
 					result_file.writelines(s)
 					result_file.close()
 
-#Data.DivideTrainAndTestFile('密码弱口令字典.txt',0.2)
+#Data.DivideTrainAndTestFile('../Data/密码弱口令字典(8-16).txt',0.2)
 #Data.PartOfDataFileByRate('密码弱口令字典.txt',0.4,0.5)
-# Data.PartOfDataFileByLength('密码弱口令字典.txt')
+#Data.PartOfDataFileByLength('../Data/密码弱口令字典.txt',8,16)
 #Data.Upper2Lower('密码弱口令字典.txt')

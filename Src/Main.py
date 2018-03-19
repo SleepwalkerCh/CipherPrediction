@@ -1,16 +1,23 @@
 from Src.FirstCharProb import FirstCharProb
 from Src.LSTM import RNN
-
+import gc
 from Src.Data import Data
 
-#Data.CleanData()
 rnn = RNN()
 rnn.CreateNetwork()
+
+for i in range(1,100):
+	DataFileRoute = "G:/163/data (" + str(i)  + ")" + ".txt"
+	print(DataFileRoute)
+	Data.init(DataFileRoute)
+	rnn.Train()
+	del Data.batches
+	del Data.DataLines
+	gc.collect()
+# FirstCharProb.init()
+# FirstCharProb.RestoreNum('../Data/FirstCharProb')
+# FirstCharProb.LearnFormFile("../Data/密码弱口令字典.txt")
+# FirstCharProb.TransNum2Prob()
+# FirstCharProb.PaintProb()
 # rnn.LoadModel()
-RNN.CountParaNum()
-exit(0)
-# data = Data.init("./Data/密码弱口令字典_train.txt")
-# rnn.Train(10000)
-FirstCharProb.init()
-FirstCharProb.LearnFormFile("./Data/密码弱口令字典_train.txt")
-rnn.Test('./Data/密码弱口令字典_test.txt')
+#rnn.Test('../Data/密码弱口令字典(8-16)_test.txt')

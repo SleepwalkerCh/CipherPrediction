@@ -28,7 +28,7 @@ class RNN:
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = 100  # RNN output size
+		hidden_size = 180  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
 		learning_rate = 0.01
 		layer_num = 3
@@ -47,7 +47,6 @@ class RNN:
 		init_state = mlstm_cell.zero_state(batch_size=RNN.batch_size, dtype=tf.float32)
 		x_length = [1,2,3,4,5,6,7,8]
 		outputs,_state = tf.nn.dynamic_rnn(mlstm_cell, inputs=x_one_hot,sequence_length=x_length,initial_state=init_state, dtype=tf.float32, time_major=False)
-		print()
 		# FC layer
 		X_for_fc = tf.reshape(outputs, [-1, hidden_size])
 		outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
@@ -70,7 +69,8 @@ class RNN:
 		file = open('./Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
-	def Train(self,MaxTimes):
+	def Train(self):
+		print("Training...")
 		saver = tf.train.Saver(max_to_keep=1)
 		merged_summary_op = tf.summary.merge_all()
 		writer = tf.summary.FileWriter(RNN.tensorboard_route, self.sess.graph)
@@ -80,15 +80,15 @@ class RNN:
 			saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
 			self.RestoreSteps()
 		# Start
-		for j in range(max(len(Data.batches),MaxTimes)):
+		for j in range(len(Data.batches)):
 			x_idx,y_idx = Data.GetBatch()
 			self.sess.run(self.train,feed_dict={self.X: x_idx, self.Y: y_idx})
-			if j % 300 == 0:
+			if j % 2000 == 0:
 				summary_str,loss = self.sess.run([merged_summary_op,self.loss]
 									,feed_dict={self.X: x_idx, self.Y: y_idx})
 				# save into tensorboard
 				writer.add_summary(summary_str, RNN.total_step)
-				RNN.total_step = RNN.total_step + 1
+				RNN.total_step = RNN.total_step + 2000
 				self.SaveSteps()
 				# save model
 				print(j, "loss:", loss)
