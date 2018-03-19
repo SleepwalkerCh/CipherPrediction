@@ -68,10 +68,10 @@ class Data:
 
 	@staticmethod
 	def GetCharsSet():
-		letters = list(" abcdefghijklmnopqrstuvwxyz")
+		letters = list(" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		numbers = list("0123456789")
 		symbols = list("~!@#$%^&*()_+{}|:<>?[]\;',./=-`")
-		special = list("睝")
+		special = list("«")
 		result = letters + numbers + symbols + special
 		return result
 
@@ -197,7 +197,7 @@ class Data:
 				line = line[1:len(line) - 1]
 			line = line.replace("\n", "")
 			line = line.replace("\r", "")
-			line = line.lower()
+			#line = line.lower()
 			for i in range(len(line)):
 				if line[i] not in CharsSet:
 					IsContinue = True
@@ -237,10 +237,10 @@ class Data:
 					s = []
 					char_set = Data.GetCharsSet()
 					for password in passwords:
-						password = password.lower()
+						#password = password.lower()
 						if set(password).issubset(set(char_set)):
 							# clean data
-							s.append(password.lower() + '\n')
+							s.append(password + '\n')
 						# print(s)
 
 					data_file.close()
