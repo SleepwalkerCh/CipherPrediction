@@ -22,10 +22,10 @@ class RNN:
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = 30  # RNN output size
+		hidden_size = len(idx2char)  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
 		learning_rate = 0.01
-		layer_num = 1
+		layer_num = 4
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
 		self.Y = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # Y label
@@ -58,11 +58,11 @@ class RNN:
 		self.sess = tf.Session()
 		print("OK")
 	def SaveSteps(self):
-		file = open('./Model/steps','wb')
+		file = open('../Model/steps','wb')
 		pickle.dump(RNN.total_step,file)
 		file.close()
 	def RestoreSteps(self):
-		file = open('./Model/steps', 'rb')
+		file = open('../Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
 	def Train(self,MaxTimes):
@@ -72,7 +72,7 @@ class RNN:
 		if RNN.is_new_train == True:
 			self.sess.run(tf.global_variables_initializer())
 		else:
-			saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
+			saver.restore(sess=self.sess, save_path="../Model/model.ckpt")
 			self.RestoreSteps()
 		# Start
 		for j in range(max(len(Data.batches),MaxTimes)):
@@ -217,3 +217,18 @@ class RNN:
 					print(result)
 				else:
 					OutFile.write(str(result) + '\n')
+	@staticmethod
+	def CountParaNum():
+		total_parameters = 0
+		for variable in tf.trainable_variables():
+			# shape is an array of tf.Dimension
+			shape = variable.get_shape()
+			# print(shape)
+			# print(len(shape))
+			variable_parameters = 1
+			for dim in shape:
+				# print(dim)
+				variable_parameters *= dim.value
+			# print(variable_parameters)
+			total_parameters += variable_parameters
+		print(total_parameters)
