@@ -15,7 +15,7 @@ class RNN:
 	batch_size = 8  # one sample Data, one batch
 	max_sequence_length = 8
 	tensorboard_route = "D:/logs"
-	is_new_train = True
+	is_new_train = False
 	total_step = 0
 	def LstmCell(self,hidden_size):
 		# LSTM cell
@@ -30,7 +30,7 @@ class RNN:
 		# hyper parameters
 		hidden_size = 180  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
-		learning_rate = 0.01
+		learning_rate = 0.001
 		layer_num = 3
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
@@ -77,7 +77,7 @@ class RNN:
 		if RNN.is_new_train == True:
 			self.sess.run(tf.global_variables_initializer())
 		else:
-			saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
+			saver.restore(sess=self.sess, save_path="../Model/model.ckpt")
 			self.RestoreSteps()
 		# Start
 		for j in range(len(Data.batches)):
@@ -92,7 +92,7 @@ class RNN:
 				self.SaveSteps()
 				# save model
 				print(j, "loss:", loss)
-				saver.save(sess=self.sess, save_path="./Model/model.ckpt")
+				saver.save(sess=self.sess, save_path="../Model/model.ckpt")
 
 	def LoadModel(self):
 		saver = tf.train.Saver(max_to_keep=1)
