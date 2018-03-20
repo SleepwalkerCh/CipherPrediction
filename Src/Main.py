@@ -3,12 +3,11 @@ from Src.LSTM import RNN
 import gc
 from Src.Data import Data
 
-
 rnn = RNN()
 rnn.CreateNetwork()
 
 for i in range(1,100):
-	DataFileRoute = "G:/163/11/data (" + str(i)  + ")" + ".txt"
+	DataFileRoute = "G:/163/data (" + str(i)  + ")" + ".txt"
 	print(DataFileRoute)
 	Data.init(DataFileRoute)
 	rnn.Train()
