@@ -59,6 +59,7 @@ class Data:
 		print("Lines to Batches...", end=' ')
 		idx2char = Data.GetCharsSet()
 		char2idx = {c: i for i, c in enumerate(idx2char)}
+		Data.batches = []
 
 		for i in range(len(Data.DataLines)):
 			x_data, y_data = Data.Pwd2Batch(Data.DataLines[i], Data.batch_size)
