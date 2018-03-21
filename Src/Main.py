@@ -15,7 +15,7 @@ for i in range(1,100):
 	del Data.batches
 	del Data.DataLines
 	gc.collect()
-	rnn.is_new_train = False
+	RNN.is_new_train = False
 # FirstCharProb.init()
 # FirstCharProb.RestoreNum('../Data/FirstCharProb')
 # FirstCharProb.LearnFormFile("../Data/密码弱口令字典.txt")
