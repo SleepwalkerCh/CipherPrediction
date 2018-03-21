@@ -15,7 +15,7 @@ class RNN:
 	batch_size = 8  # one sample Data, one batch
 	max_sequence_length = 8
 	tensorboard_route = "D:/logs"
-	is_new_train = True
+	is_new_train = False
 	total_step = 0
 	def LstmCell(self,hidden_size):
 		# LSTM cell
@@ -30,7 +30,7 @@ class RNN:
 		# hyper parameters
 		hidden_size = 300  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
-		learning_rate = 0.001
+		learning_rate = 0.005
 		layer_num = 3
 
 		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
@@ -75,6 +75,8 @@ class RNN:
 		merged_summary_op = tf.summary.merge_all()
 		writer = tf.summary.FileWriter(RNN.tensorboard_route, self.sess.graph)
 		if RNN.is_new_train == True:
+			print("==========================")
+			exit(0)
 			self.sess.run(tf.global_variables_initializer())
 		else:
 			saver.restore(sess=self.sess, save_path="../Model/model.ckpt")
