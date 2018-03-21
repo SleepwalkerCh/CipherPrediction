@@ -15,7 +15,7 @@ class RNN:
 	batch_size = 8  # one sample Data, one batch
 	max_sequence_length = 8
 	tensorboard_route = "D:/logs"
-	is_new_train = False
+	is_new_train = True
 	total_step = 0
 	def LstmCell(self,hidden_size):
 		# LSTM cell
@@ -28,7 +28,7 @@ class RNN:
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = 180  # RNN output size
+		hidden_size = 300  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
 		learning_rate = 0.001
 		layer_num = 3
@@ -62,11 +62,11 @@ class RNN:
 		self.sess = tf.Session()
 		print("OK")
 	def SaveSteps(self):
-		file = open('./Model/steps','wb')
+		file = open('../Model/steps','wb')
 		pickle.dump(RNN.total_step,file)
 		file.close()
 	def RestoreSteps(self):
-		file = open('./Model/steps', 'rb')
+		file = open('../Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
 		file.close()
 	def Train(self):
@@ -96,7 +96,7 @@ class RNN:
 
 	def LoadModel(self):
 		saver = tf.train.Saver(max_to_keep=1)
-		saver.restore(sess=self.sess, save_path="./Model/model.ckpt")
+		saver.restore(sess=self.sess, save_path="../Model/model.ckpt")
 
 	def Test(self,route):
 		print('Testing...')
