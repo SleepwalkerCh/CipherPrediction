@@ -4,6 +4,10 @@ from base64 import test
 import itertools
 import pypinyin
 from pypinyin import lazy_pinyin
+import random
+
+
+
 class PreData:
     def handle_data(self, lastname="", firstname="", birthday="", ID_last4="", qq_number="", mobilenum="", phonenum="", carnum="", other=""):
         #print(lazy_pinyin(u'王征'))
@@ -115,5 +119,38 @@ class PreData:
         phones = phone_num.split("-")
         return phones
         #print(phones)
-pd = PreData()
-pd.handle_data('徐','佩蓉','19960201','0014','1002992920','18811778322','0393-8960012','JA6931','0125')
+
+    def random_split_file(self,file_path,divide_num):
+        #print('.'.join(file_path.split(".")[:-1]) + "_train.txt")
+        train_file = open('.'.join(file_path.split(".")[:-1])+"_train.txt","w")
+
+        test_file = open('.'.join(file_path.split(".")[:-1])+"_test.txt","w")
+        src_file = open(file_path,"r")
+        src_list = list()
+        #读取数据
+        while 1:
+            line = src_file.readline()
+            if not line:
+                break
+            else:
+                src_list.append(line)
+        choose_num_list = random.sample(range(len(src_list)), divide_num)
+        test_list = list()
+        for index in choose_num_list:
+            #print(index)
+            test_list.append(src_list[index])
+        train_list = [item for item in src_list if item not in test_list]
+        train_file.writelines(train_list)
+        test_file.writelines(test_list)
+        train_file.close()
+        test_file.close()
+
+
+
+
+
+pda = PreData()
+
+pda.handle_data('王','征','19971203','0346','1024089291','13700808760','0678-7352674','MA2333','597')
+pda.random_split_file("./data.txt",5000)
+
