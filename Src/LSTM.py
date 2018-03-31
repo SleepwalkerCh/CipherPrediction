@@ -1,10 +1,12 @@
 #coding=utf-8
 import pickle
 from copy import deepcopy
-
+import tensorflow
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
+
+
 from Src.FindMaxNIndex import FindIndex
 from Src.FirstCharProb import FirstCharProb
 
@@ -14,8 +16,8 @@ from Src.Data import Data
 class RNN:
 	batch_size = 8  # one sample Data, one batch
 	max_sequence_length = 8
-	tensorboard_route = "D:/logs"
-	is_new_train = True
+	tensorboard_route = "F:/TrainData/logs"
+	is_new_train = False
 	total_step = 0
 	def LstmCell(self,hidden_size):
 		# LSTM cell
@@ -28,15 +30,15 @@ class RNN:
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters
-		hidden_size = 300  # RNN output size
+		hidden_size = 50  # RNN output size
 		num_classes = len(idx2char)  # final output size (RNN or softmax, etc.)
 		learning_rate = 0.001
-		layer_num = 3
+		layer_num = 1
 
-		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # X Data
-		self.Y = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length])  # Y label
+		self.X = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length],name="X")  # X Data
+		self.Y = tf.placeholder(tf.int32, [RNN.batch_size, RNN.max_sequence_length],name="Y")  # Y label
 
-		x_one_hot = tf.one_hot(self.X, num_classes)  # one hot: 1 -> 0 1 0 0 0 0 0 0 0 0
+		x_one_hot = tf.one_hot(self.X, num_classes,name="x_one_hot")  # one hot: 1 -> 0 1 0 0 0 0 0 0 0 0
 		# LSTM cell
 		lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_size, forget_bias=1.0, state_is_tuple=True)
 		# Dropout Layer
@@ -48,13 +50,17 @@ class RNN:
 		x_length = [1,2,3,4,5,6,7,8]
 		outputs,_state = tf.nn.dynamic_rnn(mlstm_cell, inputs=x_one_hot,sequence_length=x_length,initial_state=init_state, dtype=tf.float32, time_major=False)
 		# FC layer
-		X_for_fc = tf.reshape(outputs, [-1, hidden_size])
+		X_for_fc = tf.reshape(outputs, [-1, hidden_size],name="output")
+		#print(X_for_fc.get_shape())
 		outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
+
 		# reshape out for sequence_loss
 		self.outputs = tf.reshape(outputs, [RNN.batch_size, -1, num_classes])
 
 		weights = tf.ones([RNN.batch_size, RNN.max_sequence_length])
 		# http://blog.csdn.net/appleml/article/details/54017873
+		# print(self.outputs.get_shape())
+		# print(self.Y.get_shape())
 		sequence_loss = tf.contrib.seq2seq.sequence_loss(logits=self.outputs, targets=self.Y, weights=weights)
 		self.loss = tf.reduce_mean(sequence_loss)
 		tf.summary.scalar('loss', self.loss)
@@ -65,6 +71,11 @@ class RNN:
 		file = open('../Model/steps','wb')
 		pickle.dump(RNN.total_step,file)
 		file.close()
+	def SaveModel(self):
+		pb_file_path = '../Model/LSTM.pb'
+		constant_graph = tf.graph_util.convert_variables_to_constants(self.sess, self.sess.graph_def, ["output"])
+		with tf.gfile.FastGFile(pb_file_path, mode='wb') as f:
+			f.write(constant_graph.SerializeToString())
 	def RestoreSteps(self):
 		file = open('../Model/steps', 'rb')
 		RNN.total_step = pickle.load(file)
@@ -82,14 +93,18 @@ class RNN:
 		# Start
 		for j in range(len(Data.batches)):
 			x_idx,y_idx = Data.GetBatch()
+			#print(len(x_idx))
+			#print(len(y_idx))
+			# print(y_idx.getshape())
 			self.sess.run(self.train,feed_dict={self.X: x_idx, self.Y: y_idx})
-			if j % 2000 == 0:
+			if j % 2000== 0:
 				summary_str,loss = self.sess.run([merged_summary_op,self.loss]
 									,feed_dict={self.X: x_idx, self.Y: y_idx})
 				# save into tensorboard
 				writer.add_summary(summary_str, RNN.total_step)
 				RNN.total_step = RNN.total_step + 2000
 				self.SaveSteps()
+				self.SaveModel()
 				# save model
 				print(j, "loss:", loss)
 				saver.save(sess=self.sess, save_path="../Model/model.ckpt")
