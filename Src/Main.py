@@ -29,7 +29,7 @@ from Src.PILSTM import PILSTM
 
 #test personal info nm
 pilstm = PILSTM()
-pilstm.is_new_train = False
+pilstm.is_new_train = True
 pilstm.LoadSourceModel()
 pilstm.CreateNetwork()
 

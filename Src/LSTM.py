@@ -26,7 +26,7 @@ class RNN:
 		lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
 		return lstm_cell
 	def CreateNetwork(self):
-		print("Creating Network.....",end=" ")
+		print("Creating Network.....")
 		tf.set_random_seed(777)  # reproducibility
 		idx2char = Data.GetCharsSet()
 		# hyper parameters

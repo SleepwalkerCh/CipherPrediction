@@ -70,11 +70,7 @@ class PILSTM:
         saver = tf.train.Saver(max_to_keep=1)
         merged_summary_op = tf.summary.merge_all()
         writer = tf.summary.FileWriter(self.tensorboard_route, self.sess.graph)
-        if self.is_new_train == True:
-            self.sess.run(tf.global_variables_initializer())
-        else:
-            saver.restore(sess=self.sess, save_path="../Model/pimodel.ckpt")
-            self.RestoreSteps()
+        self.sess.run(tf.global_variables_initializer())
         # Start
         #导入数据
         for j in range(len(Data.batches)):
@@ -92,7 +88,7 @@ class PILSTM:
                 #self.SaveModel()
                 # save model
                 print(j, "loss:", loss)
-                saver.save(sess=self.sess, save_path="../Model/pimodel.ckpt")
+                #saver.save(sess=self.sess, save_path="../Model/pimodel.ckpt")
 
     def LoadModel(self):
         saver = tf.train.Saver(max_to_keep=1)
