@@ -61,6 +61,10 @@ class PreData:
         if('' in res):
             res.remove('')
         #print(res)
+        piece_file = open('info_pieces.txt', 'w')
+        for item in res[:-1]:
+            piece_file.write(item + '\n')
+        piece_file.write(res[-1])
         file = open('data.txt', 'w')
         for i in range(1, 5):
             rawdata = list(itertools.permutations(res,i))
@@ -145,12 +149,92 @@ class PreData:
         train_file.close()
         test_file.close()
 
+    def SplitInitPwd(self,pwd):
+        piece_file = open('info_pieces.txt','r')
+        src_list = list()
+        res_list = list()
+        # 读取数据
+        while 1:
+            line = piece_file.readline().replace('\n','')
+            if not line:
+                break
+            else:
+                src_list.append(line)
+            src_list.sort(key=lambda x: -len(x))
+        #print(src_list)
+        head = 0
+        tail = 1
+        #print(src_list)
+        while(head < len(pwd)):
+            temp = tail
+            for item in src_list:
+                if tail > len(pwd):
+                    break
+                #wang
+                while pwd[head:tail] in item:
+                    if tail > len(pwd):
+                        break
+                    else:
+                        tail += 1
+                    #print(123)
+            if tail > temp:
+                tail -= 1
+                if(pwd[head:tail] in src_list):
+                    #ang
+                    res_list.append(pwd[head:tail])
+                    head = tail
+                    tail += 1
+                else:
+                    head += 1
+                    tail = head + 1
+            else:
+                head += 1
+                tail = head + 1
+        #print(res_list)
+        #split all
+        boundary = list(set(res_list))
+        #print(boundary)
+        boundary.sort(key=lambda x: -len(x))
+        #remove those items which contain in others
+        #like w in wang
+        # for item1 in boundary:
+        #     for item2 in boundary:
+        #         if item2 in item1 and item2 != item1 :
+        #             boundary.remove(item2)
+        # print(boundary)
+        #long item first
+        res = list()
+        init_res = [pwd]
 
+        for item in boundary:
+            for it in init_res:
+                split_items = it.split(item)
+                init_res.remove(it)
+                init_res.extend(split_items)
+        init_res.extend(boundary)
+        init_res = list(set(init_res))
+        if len(init_res) == 1:
+            #随机选取位置切分
+            while True:
+                first_pos = random.randint(1,len(pwd)-1)
+                second_pos = random.randint(1,len(pwd)-1)
+                if(first_pos != second_pos):
+                    break
+            max_one = max(first_pos,second_pos)
+            min_one = min(first_pos,second_pos)
+            print(min_one,max_one)
+            res.append(init_res[0][:min_one])
+            res.append(init_res[0][min_one:max_one])
+            res.append(init_res[0][max_one:])
+        else:
+            res = init_res
+        return res
 
 
 
 pda = PreData()
 
 pda.handle_data('王','征','19971203','0346','1024089291','13700808760','0678-7352674','MA2333','597')
-pda.random_split_file("./data.txt",5000)
+pda.SplitInitPwd("cao")
+# pda.random_split_file("./data.txt",5000)
 
