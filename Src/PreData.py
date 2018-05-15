@@ -9,13 +9,19 @@ import random
 
 
 class PreData:
-    def handle_data(self, lastname="", firstname="", birthday="", ID_last4="", qq_number="", mobilenum="", phonenum="", carnum="", other=""):
+    def handle_data(self, lastname="", firstname="", birthday="", ID_last4="", qq_number="", mobilenum="", phonenum="", carnum="", studentnum="", other=""):
         #print(lazy_pinyin(u'王征'))
         #lastname = "慕容"
         #姓信息块,输入格式：“慕容”，输出2
         lastname_infos  = self.extract_xname(lastname)
         #名信息块，输入格式：“云海”，输出2
         firstname_infos = self.extract_xname(firstname)
+        name_infos = list()
+        if (lastname != "" and firstname != ""):
+            name_infos.append(lastname_infos[0] + firstname_infos[0])
+            name_infos.append(lastname_infos[1] + firstname_infos[1])
+        else:
+            name_infos = [""]
         #生日信息块，输入格式：“19980201”，输出6
         #birthday = "19980811"
         birthday_infos = self.extract_bday(birthday)
@@ -42,6 +48,12 @@ class PreData:
             alpha = ''.join([item for item in carnum if item.isalpha()])
             dig = ''.join([item for item in carnum if item.isdigit()])
             car_infos = [alpha, dig]
+        # 学号或者工号
+        # 取后5位数
+        if (studentnum == ""):
+            student_infos = [""]
+        else:
+            student_infos = [studentnum[-5:]]
         #其余信息，输出1
         if(other == ""):
             other_infos = [""]
@@ -57,14 +69,11 @@ class PreData:
         #print(res)
         res.extend(phone_infos)
         res.extend(car_infos)
+        res.extend(student_infos)
         res.extend(other_infos)
         if('' in res):
             res.remove('')
         #print(res)
-        piece_file = open('info_pieces.txt', 'w')
-        for item in res[:-1]:
-            piece_file.write(item + '\n')
-        piece_file.write(res[-1])
         file = open('data.txt', 'w')
         for i in range(1, 5):
             rawdata = list(itertools.permutations(res,i))
@@ -75,7 +84,14 @@ class PreData:
                     str+= '\n'
                     file.write(str)
         file.close()
-
+        res.extend(name_infos)
+        if ('' in res):
+            res.remove('')
+        print(res)
+        piece_file = open('info_pieces.txt', 'w')
+        for item in res[:-1]:
+            piece_file.write(item + '\n')
+        piece_file.write(res[-1])
 
 
 
@@ -233,8 +249,7 @@ class PreData:
 
 
 pda = PreData()
-
-pda.handle_data('王','征','19971203','0346','1024089291','13700808760','0678-7352674','MA2333','597')
+pda.handle_data('慕容','云海','19971203','0014','1002992920','13700808760','0678-7352674','JA6931','2015211650','597')
 pda.SplitInitPwd("cao")
 # pda.random_split_file("./data.txt",5000)
 
