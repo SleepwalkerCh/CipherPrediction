@@ -48,26 +48,26 @@ class PILSTM:
 
 
 
-        #define a lstm basic cell
-        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(self.hidden_size, forget_bias=1.0, state_is_tuple=True)
-        # Dropout Layer
-        lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
-        # multi-LSTM cell
-        mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([self.LstmCell(self.hidden_size) for _ in range(self.layer_num)],
-                                                 state_is_tuple=True)
-        init_state = mlstm_cell.zero_state(batch_size=self.batch_size, dtype=tf.float32)
-        #create network
-        #print(self.bottleneck_input)
-        std_inputs = tf.reshape(self.bottleneck_input,[8, 8, self.hidden_size])
-        x_length = [1, 2, 3, 4, 5, 6, 7, 8]
-        outputs, _state = tf.nn.dynamic_rnn(mlstm_cell, inputs=std_inputs,sequence_length=x_length,
-                                            initial_state=init_state, dtype=tf.float32, time_major=False)
-        X_for_fc = tf.reshape(outputs, [-1, self.hidden_size], name="output")
+        # #define a lstm basic cell
+        # lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(self.hidden_size, forget_bias=1.0, state_is_tuple=True)
+        # # Dropout Layer
+        # lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
+        # # multi-LSTM cell
+        # mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([self.LstmCell(self.hidden_size) for _ in range(self.layer_num)],
+        #                                          state_is_tuple=True)
+        # init_state = mlstm_cell.zero_state(batch_size=self.batch_size, dtype=tf.float32)
+        # #create network
+        # #print(self.bottleneck_input)
+        # std_inputs = tf.reshape(self.bottleneck_input,[8, 8, self.hidden_size])
+        # x_length = [1, 2, 3, 4, 5, 6, 7, 8]
+        # outputs, _state = tf.nn.dynamic_rnn(mlstm_cell, inputs=std_inputs,sequence_length=x_length,
+        #                                     initial_state=init_state, dtype=tf.float32, time_major=False)
+        # X_for_fc = tf.reshape(outputs, [-1, self.hidden_size], name="output")
 
         #定义一层全连接层
         #self.bottleneck_input = tf.reshape(self.bottleneck_input,[64,self.hidden_size])
         #print(self.bottleneck_input.get_shape())
-        outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
+        outputs = tf.contrib.layers.fully_connected(self.bottleneck_input, num_classes, activation_fn=None)
         # reshape out for sequence_loss
         self.outputs = tf.reshape(outputs, [self.batch_size, -1, num_classes])
         weights = tf.ones([self.batch_size, self.max_sequence_length])
