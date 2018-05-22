@@ -48,26 +48,22 @@ class HeuristicTest:
     def ConsUpperLength(self):
         pattern = r"[A-Z]{2,}"
         res = re.findall(pattern,self.pwd)
-        str = ""
-        for item in res:
-            str += ''.join(item)
-        return len(str)
+        res.sort(key=lambda x: -len(x))
+        return len(res[0])
     # get consistent Lower Letter Length
     def ConsLowerLength(self):
         pattern = r"[a-z]{2,}"
         res = re.findall(pattern,self.pwd)
-        str = ""
-        for item in res:
-            str += ''.join(item)
-        return len(str)
+        res = re.findall(pattern, self.pwd)
+        res.sort(key=lambda x: -len(x))
+        return len(res[0])
 # get consistent Number Length
     def ConsNumLength(self):
         pattern = r"\d{2,}"
         res = re.findall(pattern,self.pwd)
-        str = ""
-        for item in res:
-            str += ''.join(item)
-        return len(str)
+        res = re.findall(pattern, self.pwd)
+        res.sort(key=lambda x: -len(x))
+        return len(res[0])
 # get consistent keyboard number
 # at least 3
     def ConsKeyLength(self):
@@ -91,7 +87,6 @@ class HeuristicTest:
             if tail > len(self.pwd):
                 break
             for item in data:
-                #search all item
                 temp = tail
                 while True:
                     if self.pwd[head:tail] in item:

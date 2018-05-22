@@ -33,9 +33,6 @@ class PILSTM:
                 self.output_graph_def.ParseFromString(f.read())
         #导入最后一层的计算tensor和输入tensor
         self.last_train_tensor, self.input_tensor = tf.import_graph_def(self.output_graph_def, return_elements=['output:0','X:0'])
-        print(self.last_train_tensor)
-        print(self.input_tensor)
-
 
     def CreateNetwork(self):
         #新的网络输入
@@ -43,35 +40,30 @@ class PILSTM:
         num_classes = len(id2char)
         learning_rate = 0.005
         self.bottleneck_input = tf.placeholder(tf.float32, [None, self.hidden_size], name='HiddenOut')
-        #标准答案
+        #real answer
         self.bottleneck_truth = tf.placeholder(tf.int32, [self.batch_size, self.max_sequence_length])
-
-
-
-        # #define a lstm basic cell
-        # lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(self.hidden_size, forget_bias=1.0, state_is_tuple=True)
-        # # Dropout Layer
-        # lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
-        # # multi-LSTM cell
-        # mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([self.LstmCell(self.hidden_size) for _ in range(self.layer_num)],
-        #                                          state_is_tuple=True)
-        # init_state = mlstm_cell.zero_state(batch_size=self.batch_size, dtype=tf.float32)
-        # #create network
-        # #print(self.bottleneck_input)
-        # std_inputs = tf.reshape(self.bottleneck_input,[8, 8, self.hidden_size])
-        # x_length = [1, 2, 3, 4, 5, 6, 7, 8]
-        # outputs, _state = tf.nn.dynamic_rnn(mlstm_cell, inputs=std_inputs,sequence_length=x_length,
-        #                                     initial_state=init_state, dtype=tf.float32, time_major=False)
-        # X_for_fc = tf.reshape(outputs, [-1, self.hidden_size], name="output")
+        #define a lstm basic cell
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(self.hidden_size, forget_bias=1.0, state_is_tuple=True)
+        # Dropout Layer
+        lstm_cell = tf.nn.rnn_cell.DropoutWrapper(cell=lstm_cell, input_keep_prob=1.0, output_keep_prob=1.0)
+        # multi-LSTM cell
+        mlstm_cell = tf.nn.rnn_cell.MultiRNNCell([self.LstmCell(self.hidden_size) for _ in range(self.layer_num)],
+                                                 state_is_tuple=True)
+        init_state = mlstm_cell.zero_state(batch_size=self.batch_size, dtype=tf.float32)
+        #create network
+        #print(self.bottleneck_input)
+        std_inputs = tf.reshape(self.bottleneck_input,[8, 8, self.hidden_size])
+        x_length = [1, 2, 3, 4, 5, 6, 7, 8]
+        outputs, _state = tf.nn.dynamic_rnn(mlstm_cell, inputs=std_inputs,sequence_length=x_length,
+                                            initial_state=init_state, dtype=tf.float32, time_major=False)
+        X_for_fc = tf.reshape(outputs, [-1, self.hidden_size], name="output")
 
         #定义一层全连接层
-        #self.bottleneck_input = tf.reshape(self.bottleneck_input,[64,self.hidden_size])
-        #print(self.bottleneck_input.get_shape())
-        outputs = tf.contrib.layers.fully_connected(self.bottleneck_input, num_classes, activation_fn=None)
+        outputs = tf.contrib.layers.fully_connected(X_for_fc, num_classes, activation_fn=None)
         # reshape out for sequence_loss
         self.outputs = tf.reshape(outputs, [self.batch_size, -1, num_classes])
+        #define loss
         weights = tf.ones([self.batch_size, self.max_sequence_length])
-        #print()
         sequence_loss = tf.contrib.seq2seq.sequence_loss(logits=self.outputs, targets=self.bottleneck_truth, weights=weights)
         self.loss = tf.reduce_mean(sequence_loss)
         tf.summary.scalar('loss', self.loss)
@@ -178,12 +170,6 @@ class PILSTM:
         # take the first batch_size locaitons into the RNN
         Probability = self.sess.run(self.outputs, feed_dict={self.bottleneck_input: bottleneck_x})
         Probability = self.ProbSoftMax(Probability.tolist())  # change into a good format
-        # display the predicted characters
-        # for i in range(RNN.batch_size):
-        # 	for j in range(RNN.max_sequence_length):
-        # 		print(idx2char[Probability[i][j].index(max(Probability[i][j]))],end='')
-        # 	print("",end=" ")
-        # multiply all first locations
         for i in range(self.max_sequence_length):
             result = result * Probability[i][i][char2idx[TestString[i + 1]]]
         if Overlen == 0:  # only has the size of batch_size

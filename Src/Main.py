@@ -35,35 +35,35 @@ from Src.HeuristicTest import HeuristicTest
 # else:
 #     print("not in list")
 # ######method 2######
-# ht = HeuristicTest("password1")
-# print(ht.CalculateScore())
+ht = HeuristicTest("qwerTTTstItKICKME&987FUCKHAHAHA%^&")
+print(ht.CalculateScore())
 #test personal info nm
-from Src.PreData import PreData
-
+# from Src.PreData import PreData
+#
 # pda = PreData()
 # pda.handle_data('murong','yunhai','19971203','0014','1002992920','13700808760','0678-7352674','JA6931','2015211650','597')
 # #print(pda.JudgeAndSplit('murongMuRong123'))
 # #pda.SplitInitPwd("cao")
 # pda.random_split_file("../Data/temp_data.txt",1000)
-
-pilstm = PILSTM()
-pilstm.is_new_train = True
-pilstm.LoadSourceModel()
-pilstm.CreateNetwork()
-
-DataFileRoute = "../Data/data.txt"
-Data.init(DataFileRoute)
-pilstm.Train()
-
-FirstCharProb.init()
-FirstCharProb.RestoreNum('../Data/FirstCharProb')
-FirstCharProb.LearnFormFile("../Data/data.txt")
-FirstCharProb.TransNum2Prob()
-# FirstCharProb.PaintProb()
-# rnn.LoadModel()
-# rnn.Test('../Data/data_test.txt')
-
-pilstm.LoadModel()
-RNN.CountParaNum()
-
-pilstm.Test('../Data/temp_data_test.txt')
+#
+# pilstm = PILSTM()
+# pilstm.is_new_train = True
+# pilstm.LoadSourceModel()
+# pilstm.CreateNetwork()
+#
+# DataFileRoute = "../Data/data.txt"
+# Data.init(DataFileRoute)
+# pilstm.Train()
+#
+# FirstCharProb.init()
+# FirstCharProb.RestoreNum('../Data/FirstCharProb')
+# FirstCharProb.LearnFormFile("../Data/data.txt")
+# FirstCharProb.TransNum2Prob()
+# # FirstCharProb.PaintProb()
+# # rnn.LoadModel()
+# # rnn.Test('../Data/data_test.txt')
+#
+# pilstm.LoadModel()
+# RNN.CountParaNum()
+#
+# pilstm.Test('../Data/temp_data_test.txt')

@@ -50,7 +50,7 @@ class PreData:
 		else:
 			alpha = ''.join([item for item in carnum if item.isalpha()])
 			dig = ''.join([item for item in carnum if item.isdigit()])
-			car_infos = [alpha, dig]
+			car_infos = [alpha, dig, carnum]
 		# 学号或者工号
 		# 取后5位数
 		if (studentnum == ""):
@@ -81,7 +81,7 @@ class PreData:
 		file = open('../Data/data_temp.txt', 'w')
 		train_file = open('../Data/temp_data.txt', 'w')
 
-		for i in range(1, 5):
+		for i in range(1, 6):
 			rawdata = list(itertools.permutations(res, i))
 			# print(rawdata)
 			for item in rawdata[:-1]:
@@ -100,7 +100,8 @@ class PreData:
 			for item in str_list[:-1]:
 				item += '\n'
 				file.write(item)
-			file.write(''.join(str_list[-1]))
+			if(len(str_list) > 0):
+				file.write(str_list[-1])
 		train_file.close()
 		file.close()
 		# delete repeated data
