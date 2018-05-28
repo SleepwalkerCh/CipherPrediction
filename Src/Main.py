@@ -3,6 +3,8 @@ from Src.LSTM import RNN
 import gc
 from Src.Data import Data
 from Src.PILSTM import PILSTM
+from time import time
+from Src.PreData import PreData
 from Src.BlackList import BlackList
 from Src.HeuristicTest import HeuristicTest
 # rnn = RNN()
@@ -35,8 +37,13 @@ from Src.HeuristicTest import HeuristicTest
 # else:
 #     print("not in list")
 # ######method 2######
+start = time()
+print("开始于" + str(start) + "秒")
 ht = HeuristicTest("qwerTTTstItKICKME&987FUCKHAHAHA%^&")
 print(ht.CalculateScore())
+stop = time()
+print("结束于" + str(stop) + "秒")
+print("花费时间为：" + str(stop - start) + "秒")
 #test personal info nm
 # from Src.PreData import PreData
 #
@@ -46,6 +53,12 @@ print(ht.CalculateScore())
 # #pda.SplitInitPwd("cao")
 # pda.random_split_file("../Data/temp_data.txt",1000)
 #
+from Src.Recommand import Recommand
+
+
+# pda = PreData()
+# pieces = pda.handle_data('xu','peirong','19961229')
+
 # pilstm = PILSTM()
 # pilstm.is_new_train = True
 # pilstm.LoadSourceModel()
@@ -64,6 +77,6 @@ print(ht.CalculateScore())
 # # rnn.Test('../Data/data_test.txt')
 #
 # pilstm.LoadModel()
-# RNN.CountParaNum()
+# # recommand = Recommand(pda,pieces,'xusajk2370',50,pilstm)
 #
 # pilstm.Test('../Data/temp_data_test.txt')

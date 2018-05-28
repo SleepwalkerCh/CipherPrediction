@@ -1,4 +1,5 @@
 import pickle
+from time import time
 
 import tensorflow as tf
 import numpy as np
@@ -16,7 +17,7 @@ class PILSTM:
     is_new_train = True
     tensorboard_route = "F:/TrainData/pilogs"
     total_step = 0
-    layer_num = 2
+    layer_num = 1
 
     def LstmCell(self, hidden_size):
         # LSTM cell
@@ -145,6 +146,9 @@ class PILSTM:
                 if j < pow(10, i):
                     sum += 1
             y.append(sum / len(resultlist))
+        #test running time
+        #stop = time()
+        #print("结束于" + str(stop)+ "秒")
 
         plt.plot(x, y)
         plt.title('Guess Result')

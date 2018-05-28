@@ -126,6 +126,8 @@ class PreData:
 		for item in res[:-1]:
 			piece_file.write(item + '\n')
 		piece_file.write(res[-1])
+		#split into test file
+		self.random_split_file("../Data/temp_data.txt", 1000)
 		return res
 
 	def JudgeAndSplit(self, str):
@@ -203,6 +205,7 @@ class PreData:
 		return phones
 
 	def random_split_file(self,file_path,divide_num):
+		#print(100)
 		train_file = open('.'.join(file_path.split(".")[:-1])+"_train.txt","w")
 		test_file = open('.'.join(file_path.split(".")[:-1])+"_test.txt","w")
 		src_file = open(file_path,"r")

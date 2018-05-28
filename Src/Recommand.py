@@ -3,7 +3,7 @@ from Src.LSTM import RNN
 from Src.FirstCharProb import FirstCharProb
 from Src.PreData import PreData
 import itertools
-def Recommand(InfoFragments,UserInput,OutputNum,rnn): # 输入碎片集，用户输入，输出的总个数
+def Recommand(predata,InfoFragments,UserInput,OutputNum,rnn): # 输入碎片集，用户输入，输出的总个数
 	result = []
 	NumOfFragments = 3
 	AddedCharSet = "1234567890qwertyuiopasdfghjklzxcvbnm"
@@ -37,13 +37,13 @@ def Recommand(InfoFragments,UserInput,OutputNum,rnn): # 输入碎片集，用户
 			if len(result) >= OutputNum:
 				return sorted(result, key=lambda password: -password[1])
 	return sorted(result, key=lambda password: -password[1])
-rnn = RNN()
-rnn.CreateNetwork()
-rnn.LoadModel()
-FirstCharProb.init()
-FirstCharProb.RestoreNum('../Data/FirstCharProb')
-FirstCharProb.TransNum2Prob()
-predata = PreData()
-pieces = predata.handle_data('徐','培容','19961229')
-recommand = Recommand(pieces,'123',50,rnn)
-print(recommand)
+# rnn = RNN()
+# rnn.CreateNetwork()
+# rnn.LoadModel()
+# FirstCharProb.init()
+# FirstCharProb.RestoreNum('../Data/FirstCharProb')
+# FirstCharProb.TransNum2Prob()
+# predata = PreData()
+# pieces = predata.handle_data('xu','peirong','19961229')
+# recommand = Recommand(pieces,'xusajk2370',50,rnn)
+# print(recommand)
